@@ -7,5 +7,9 @@ An emulator for processor 6502 in beautiful C.
 ```console
 chmod +x build.sh
 ./build.sh
+
+# alternatively
+
+make
 ```
 
