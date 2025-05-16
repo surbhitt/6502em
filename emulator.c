@@ -76,17 +76,17 @@ int disconnect(CPU cpu) {
     return 1;
 }
 
-int main(void) {
-    CPU cpu;
-    int ret = connect(cpu);
-    if (ret) {
-        printf("\x1b[32m[Success]\x1b[39m connected\n"); 
-    } else {
-        printf("\x1b[31m[Failed]\x1b[39m during connection with err %d\n", ret);
-        exit(0);
-    }
-    /* printf("this is the value before => %d\n", cpu.flag_reg); */
-    /* update_status_flag(&cpu.flag_reg, "IZC"); */
-    /* printf("this is the value after => %d\n", cpu.flag_reg); */
-    disconnect(cpu);
-}
+/* int main(void) { */
+/*     CPU cpu; */
+/*     int ret = connect(cpu); */
+/*     if (ret) { */
+/*         printf("\x1b[32m[Success]\x1b[39m connected\n"); */ 
+/*     } else { */
+/*         printf("\x1b[31m[Failed]\x1b[39m during connection with err %d\n", ret); */
+/*         exit(0); */
+/*     } */
+/*     /1* printf("this is the value before => %d\n", cpu.flag_reg); *1/ */
+/*     /1* update_status_flag(&cpu.flag_reg, "IZC"); *1/ */
+/*     /1* printf("this is the value after => %d\n", cpu.flag_reg); *1/ */
+/*     disconnect(cpu); */
+/* } */
