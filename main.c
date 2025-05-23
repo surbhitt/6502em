@@ -5,9 +5,9 @@
 
 typedef char Cmd[100];
 
-void print_regs_n_mem(Emulator em){
+void print_regs_n_mem(Emulator em) {
     printf("a=%d x=%d y=%d ", em.a, em.x, em.y);
-    for (int i=510; i<520; i++) {
+    for (int i = 510; i < 520; i++) {
         printf("%d ", memory[i]);
     }
 }
@@ -37,10 +37,15 @@ int main(int argc, char** argv) {
         // printf("%s", buffer);
         char** cmd_tokens = NULL;
         int cmd_tokens_count = 0;
+
+        strip(buffer, '\n');
+        strip(buffer, ' ');
         split_on_delim(buffer, ' ', &cmd_tokens, &cmd_tokens_count);
         assemble_line(&em, cmd_tokens, cmd_tokens_count);
+
+        free(cmd_tokens);
     }
-    
+
     print_regs_n_mem(em);
     return 0;
 }

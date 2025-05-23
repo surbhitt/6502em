@@ -91,6 +91,36 @@ bool is_oprnd_val(char val[4]) {
     return false;
 }
 
+// -----------------------------------------------------------------------
+// -------------------------INSTRUCTIONS----BEGIN-------------------------
+// -----------------------------------------------------------------------
+void LDA(Emulator* em, char* operand) {
+    int operand_val = hex_to_int(operand);
+    em->a = operand_val;
+}
+
+void STA(Emulator* em, char* operand) {
+    int address = hex_to_int(operand);
+    memory[address] = em->a;
+}
+void TAX(Emulator* em) {
+    em->x = em->a;
+}
+void INX(Emulator* em) {
+    em->x++;
+}
+void ADC(Emulator* em, char* operand) {
+    int operand_val = hex_to_int(operand);
+    em->a += operand_val;
+}
+void BRK() {
+    // TODO: some kind of exit
+    printf("\n== DONE ==\n");
+}
+// -----------------------------------------------------------------------
+// --------------------------INSTRUCTIONS----END--------------------------
+// -----------------------------------------------------------------------
+
 void assemble_line(Emulator* em, char* cmd_tokens[], int cmd_tokens_count) {
     char* operator= cmd_tokens[0];
     char* operand = NULL;
@@ -98,11 +128,18 @@ void assemble_line(Emulator* em, char* cmd_tokens[], int cmd_tokens_count) {
         operand = cmd_tokens[1];
 
     if (strcmp(operator, "LDA") == 0) {
-        int operand_val = hex_to_int(operand);
-        em->a = operand_val;
+        LDA(em, operand);
     } else if (strcmp(operator, "STA") == 0) {
-        char* end;
-        int address = hex_to_int(operand);
-        memory[address] = em->a;
+        STA(em, operand);
+    } else if (strcmp(operator, "TAX") == 0) {
+        TAX(em);
+    } else if (strcmp(operator, "INX") == 0) {
+        INX(em);
+    } else if (strcmp(operator, "ADC") == 0) {
+        ADC(em, operand);
+    } else if (strcmp(operator, "BRK") == 0) {
+        BRK();
+    } else {
+        printf("[ERR] Unrecognised operator: %s", operator);
     }
 }
