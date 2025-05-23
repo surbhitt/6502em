@@ -1,2 +1,3 @@
 set -xe
-gcc emulator.c -o em 
+gcc main.c
+./a.out examples/1-3pixels.asm
