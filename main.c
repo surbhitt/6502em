@@ -1,63 +1,46 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 #include "emulator.c"
+#include "utils.c"
 
 typedef char Cmd[100];
-CPU cpu;
 
-int hex_to_int(const char* str) {
-    // convert the val from hex to int
-    // after removing the $ and #
-    if (str[0] == '#')
-        str++;
-    if (str[0] == '$')
-        str++;
-    return (int)strtol(str, NULL, 16);
-}
-
-bool is_oprnd_val(char val[4]) {
-    // check for the # symbol that indicates the operand is an absolute value
-    // else it is a memory location
-    if (val[0] == '#')
-        return true;
-    return false;
-}
-
-void assemble(Cmd cmd) {
-    char* oprtr = strtok(cmd, " ");
-    if (strcmp(oprtr, "LDA") == 0) {
-        // instruction is LDA
-        // move operand value to a register
-        char* oprnd = strtok(NULL, " ");
-        if (is_oprnd_val(oprnd)) {
-            cpu.a += hex_to_int(oprnd);
-        } else {
-            // TODO
-            printf("TO BE IMPLEMENTED\n");
-        }
-    } else if (strcmp(oprtr, "STA") == 0) {
-        // instruction is STA
-        // move a register value to operand(memory location)
-        char* oprnd = strtok(NULL, " ");
-        if (is_oprnd_val(oprnd)) {
-            assert(1 == 0, "Operand with STA should be a memory location")
-        } else {
-            // TODO
-            printf("TO BE IMPLEMENTED\n");
-        }
+void print_regs_n_mem(Emulator em){
+    printf("a=%d x=%d y=%d ", em.a, em.x, em.y);
+    for (int i=510; i<520; i++) {
+        printf("%d ", memory[i]);
     }
 }
 
-void print_cpu_reg(CPU cpu) {
-    printf("a = %d\n", cpu.a);
-}
+int main(int argc, char** argv) {
+    Emulator em;
+    // TODO exit if ready fails
+    int ok = ready(&em);
 
-int main(void) {
-    int ok = connect(cpu);
-    char cmd[100];
-    fgets(cmd, sizeof(cmd), stdin);
-    assemble(cmd);
-    print_cpu_reg(cpu);
+    if (argc < 2) {
+        printf("no file name provided");
+        return 1;
+    }
+    // char cmd[100];
+    // fgets(cmd, sizeof(cmd), stdin);
+
+    const char* filename = argv[1];
+    FILE* file = fopen(filename, "r");
+
+    if (!file) {
+        perror("Could not open file");
+        return 1;
+    }
+
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), file)) {
+        // printf("%s", buffer);
+        char** cmd_tokens = NULL;
+        int cmd_tokens_count = 0;
+        split_on_delim(buffer, ' ', &cmd_tokens, &cmd_tokens_count);
+        assemble_line(&em, cmd_tokens, cmd_tokens_count);
+    }
+    
+    print_regs_n_mem(em);
     return 0;
 }

@@ -1,92 +1,108 @@
 #include <assert.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 
-#define MEM_SIZE 64*1024
-
-typedef uint8_t BYTE; 
+typedef uint8_t BYTE;
 typedef uint16_t WORD;
 
-// does it make sense for the memory to be outside the cpu??
+#define MEM_SIZE 64 * 1024
 BYTE memory[MEM_SIZE];
 
-typedef struct CPU {
+typedef struct Emulator {
     // registers
     BYTE a, x, y;
-    // PC: program counter
-    // SP: stack pointer
-    WORD prg_cntr, stk_pntr;
+    // pc: program counter
+    // sp: stack pointer
+    WORD pc, sp;
     // status flag
     // N V . B D I Z C
     // Negative, Overflow, unused, Break, Decimal, IRQ disable, Zero, Carry
-    BYTE flag_reg;
-} CPU;
+    BYTE sf;
+} Emulator;
 
-void update_status_flag(BYTE*, const char*);
-
-void reset_routine(CPU cpu) {
-    cpu.a = 0;
-    cpu.x = 0;
-    cpu.y = 0;
-    update_status_flag(&cpu.flag_reg, "R");
-    cpu.prg_cntr = 0xfffc;
-    cpu.stk_pntr = 0x0100;
-}
-
-void update_status_flag(BYTE* flag_reg, const char* flags) {
+void update_status_flag(BYTE* sf, const char* flags) {
     while (*flags) {
-        switch (*(flags++)) { 
+        switch (*(flags++)) {
             case 'N':
-                *flag_reg = *flag_reg | 0b10000000; break;
+                *sf = *sf | 0b10000000;
+                break;
             case 'V':
-                *flag_reg = *flag_reg | 0b01000000; break;
+                *sf = *sf | 0b01000000;
+                break;
             case 'B':
-                *flag_reg = *flag_reg | 0b00010000; break;
+                *sf = *sf | 0b00010000;
+                break;
             case 'D':
-                *flag_reg = *flag_reg | 0b00001000; break;
+                *sf = *sf | 0b00001000;
+                break;
             case 'I':
-                *flag_reg = *flag_reg | 0b00000100; break;
+                *sf = *sf | 0b00000100;
+                break;
             case 'Z':
-                *flag_reg = *flag_reg | 0b00000010; break;
+                *sf = *sf | 0b00000010;
+                break;
             case 'C':
-                *flag_reg = *flag_reg | 0b00000001; break;
+                *sf = *sf | 0b00000001;
+                break;
             case 'R':
-                *flag_reg = *flag_reg & 0b00000000; break;
+                *sf = *sf & 0b00000000;
+                break;
             default:
-                printf("UNREACHABLE"); exit(0);
+                printf("UNREACHABLE");
+                exit(0);
         }
     }
 }
 
-int connect(CPU cpu) {
-    // should this return a reference to a cpy object 
-    // instead of taking an object
-    reset_routine(cpu);
+void reset_routine(Emulator* em) {
+    em->a = 0;
+    em->x = 0;
+    em->y = 0;
+    update_status_flag(&em->sf, "R");
+    em->pc = 0xfffc;
+    em->sp = 0x0100;
+}
+
+int ready(Emulator* em) {
+    reset_routine(em);
     memset(memory, 0, sizeof(memory));
-    // create a try catch to catch for error while reset
     return 1;
 }
 
-int disconnect(CPU cpu) {
-    assert("TOOD: --");
-    // manage status code
-    return 1;
+int hex_to_int(const char* str) {
+    // convert the val from hex to int
+    // after removing the $ and #
+    if (str[0] == '#')
+        str++;
+    if (str[0] == '$')
+        str++;
+    return (int)strtol(str, NULL, 16);
 }
 
-/* int main(void) { */
-/*     CPU cpu; */
-/*     int ret = connect(cpu); */
-/*     if (ret) { */
-/*         printf("\x1b[32m[Success]\x1b[39m connected\n"); */ 
-/*     } else { */
-/*         printf("\x1b[31m[Failed]\x1b[39m during connection with err %d\n", ret); */
-/*         exit(0); */
-/*     } */
-/*     /1* printf("this is the value before => %d\n", cpu.flag_reg); *1/ */
-/*     /1* update_status_flag(&cpu.flag_reg, "IZC"); *1/ */
-/*     /1* printf("this is the value after => %d\n", cpu.flag_reg); *1/ */
-/*     disconnect(cpu); */
-/* } */
+bool is_oprnd_val(char val[4]) {
+    // check for the # symbol that indicates the operand is an absolute value
+    // else it is a memory location
+    if (val[0] == '#')
+        return true;
+    return false;
+}
+
+void assemble_line(Emulator* em, char* cmd_tokens[], int cmd_tokens_count) {
+    char* operator= cmd_tokens[0];
+    char* operand = NULL;
+    if (cmd_tokens_count > 1)
+        operand = cmd_tokens[1];
+
+    if (strcmp(operator, "LDA") == 0) {
+        int operand_val = hex_to_int(operand);
+        em->a = operand_val;
+    } else if (strcmp(operator, "STA") == 0) {
+        char* end;
+        int address = hex_to_int(operand);
+        memory[address] = em->a;
+    }
+}
